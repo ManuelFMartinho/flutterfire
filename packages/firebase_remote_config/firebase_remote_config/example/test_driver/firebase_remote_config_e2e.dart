@@ -13,7 +13,7 @@ void testsMain() {
       remoteConfig = RemoteConfig.instance;
       await remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 8),
-        minimumFetchInterval: Duration.zero,
+        minimumFetchInterval: const Duration(seconds: 1),
       ));
       await remoteConfig.setDefaults(<String, dynamic>{
         'welcome': 'default welcome',
@@ -49,7 +49,10 @@ void testsMain() {
 
     test('settings', () async {
       expect(remoteConfig.settings.fetchTimeout, const Duration(seconds: 8));
-      expect(remoteConfig.settings.minimumFetchInterval, Duration.zero);
+      expect(
+        remoteConfig.settings.minimumFetchInterval,
+        const Duration(seconds: 1),
+      );
       await remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: Duration.zero,
         minimumFetchInterval: const Duration(seconds: 88),
