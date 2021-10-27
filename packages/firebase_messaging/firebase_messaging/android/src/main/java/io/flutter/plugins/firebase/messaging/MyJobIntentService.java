@@ -14,13 +14,15 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
-abstract class JobIntentService extends Service {
+abstract class MyJobIntentService extends Service {
   static final String TAG = "JobIntentService";
 
   static final boolean DEBUG = false;
@@ -175,16 +177,16 @@ abstract class JobIntentService extends Service {
   /** Implementation of a JobServiceEngine for interaction with JobIntentService. */
   @RequiresApi(26)
   static final class JobServiceEngineImpl extends JobServiceEngine
-    implements JobIntentService.CompatJobEngine {
+    implements MyJobIntentService.CompatJobEngine {
     static final String TAG = "JobServiceEngineImpl";
 
     static final boolean DEBUG = false;
 
-    final JobIntentService mService;
+    final MyJobIntentService mService;
     final Object mLock = new Object();
     JobParameters mParams;
 
-    final class WrapperWorkItem implements JobIntentService.GenericWorkItem {
+    final class WrapperWorkItem implements MyJobIntentService.GenericWorkItem {
       final JobWorkItem mJobWork;
 
       WrapperWorkItem(JobWorkItem jobWork) {
@@ -223,7 +225,7 @@ abstract class JobIntentService extends Service {
       }
     }
 
-    JobServiceEngineImpl(JobIntentService service) {
+    JobServiceEngineImpl(MyJobIntentService service) {
       super(service);
       mService = service;
     }
@@ -256,7 +258,7 @@ abstract class JobIntentService extends Service {
 
     /** Dequeue some work. */
     @Override
-    public JobIntentService.GenericWorkItem dequeueWork() {
+    public MyJobIntentService.GenericWorkItem dequeueWork() {
       JobWorkItem work;
       synchronized (mLock) {
         if (mParams == null) return null;
@@ -280,7 +282,7 @@ abstract class JobIntentService extends Service {
   }
 
   @RequiresApi(26)
-  static final class JobWorkEnqueuer extends JobIntentService.WorkEnqueuer {
+  static final class JobWorkEnqueuer extends MyJobIntentService.WorkEnqueuer {
     private final JobInfo mJobInfo;
     private final JobScheduler mJobScheduler;
 
@@ -365,7 +367,7 @@ abstract class JobIntentService extends Service {
   }
 
   /** Default empty constructor. */
-  public JobIntentService() {
+  public MyJobIntentService() {
     mCompatQueue = new ArrayList<>();
   }
 

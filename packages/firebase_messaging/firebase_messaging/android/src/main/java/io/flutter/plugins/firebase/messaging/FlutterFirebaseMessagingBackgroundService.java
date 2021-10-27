@@ -8,46 +8,49 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
+
 import com.google.firebase.messaging.RemoteMessage;
-import io.flutter.embedding.engine.FlutterShellArgs;
+
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-public class FlutterFirebaseMessagingBackgroundService extends JobIntentService {
+import io.flutter.embedding.engine.FlutterShellArgs;
+
+public class FlutterFirebaseMessagingBackgroundService extends MyJobIntentService {
   private static final String TAG = "FLTFireMsgService";
 
-  private static final List<Intent> messagingQueue =
-      Collections.synchronizedList(new LinkedList<>());
+  private static final List<Intent> messagingQueue = Collections.synchronizedList(new LinkedList<>());
 
   /** Background Dart execution context. */
   private static FlutterFirebaseMessagingBackgroundExecutor flutterBackgroundExecutor;
 
   /**
-   * Schedule the message to be handled by the {@link FlutterFirebaseMessagingBackgroundService}.
+   * Schedule the message to be handled by the
+   * {@link FlutterFirebaseMessagingBackgroundService}.
    */
   public static void enqueueMessageProcessing(Context context, Intent messageIntent) {
     RemoteMessage message = (RemoteMessage) messageIntent.getExtras().get("notification");
-    enqueueWork(
-        context,
-        FlutterFirebaseMessagingBackgroundService.class,
-        FlutterFirebaseMessagingUtils.JOB_ID,
-        messageIntent,
-      message.getOriginalPriority() == RemoteMessage.PRIORITY_HIGH);
+    enqueueWork(context, FlutterFirebaseMessagingBackgroundService.class, FlutterFirebaseMessagingUtils.JOB_ID,
+        messageIntent, message.getOriginalPriority() == RemoteMessage.PRIORITY_HIGH);
   }
 
   /**
-   * Starts the background isolate for the {@link FlutterFirebaseMessagingBackgroundService}.
+   * Starts the background isolate for the
+   * {@link FlutterFirebaseMessagingBackgroundService}.
    *
-   * <p>Preconditions:
+   * <p>
+   * Preconditions:
    *
    * <ul>
-   *   <li>The given {@code callbackHandle} must correspond to a registered Dart callback. If the
-   *       handle does not resolve to a Dart callback then this method does nothing.
-   *   <li>A static {@link #pluginRegistrantCallback} must exist, otherwise a {@link
-   *       PluginRegistrantException} will be thrown.
+   * <li>The given {@code callbackHandle} must correspond to a registered Dart
+   * callback. If the handle does not resolve to a Dart callback then this method
+   * does nothing.
+   * <li>A static {@link #pluginRegistrantCallback} must exist, otherwise a
+   * {@link PluginRegistrantException} will be thrown.
    * </ul>
    */
   @SuppressWarnings("JavadocReference")
@@ -61,11 +64,13 @@ public class FlutterFirebaseMessagingBackgroundService extends JobIntentService 
   }
 
   /**
-   * Called once the Dart isolate ({@code flutterBackgroundExecutor}) has finished initializing.
+   * Called once the Dart isolate ({@code flutterBackgroundExecutor}) has finished
+   * initializing.
    *
-   * <p>Invoked by {@link FlutterFirebaseMessagingPlugin} when it receives the {@code
-   * FirebaseMessaging.initialized} message. Processes all messaging events that came in while the
-   * isolate was starting.
+   * <p>
+   * Invoked by {@link FlutterFirebaseMessagingPlugin} when it receives the {@code
+   * FirebaseMessaging.initialized} message. Processes all messaging events that
+   * came in while the isolate was starting.
    */
   /* package */
   static void onInitialized() {
@@ -81,35 +86,40 @@ public class FlutterFirebaseMessagingBackgroundService extends JobIntentService 
   }
 
   /**
-   * Sets the Dart callback handle for the Dart method that is responsible for initializing the
-   * background Dart isolate, preparing it to receive Dart callback tasks requests.
+   * Sets the Dart callback handle for the Dart method that is responsible for
+   * initializing the background Dart isolate, preparing it to receive Dart
+   * callback tasks requests.
    */
   public static void setCallbackDispatcher(long callbackHandle) {
     FlutterFirebaseMessagingBackgroundExecutor.setCallbackDispatcher(callbackHandle);
   }
 
   /**
-   * Sets the Dart callback handle for the users Dart handler that is responsible for handling
-   * messaging events in the background.
+   * Sets the Dart callback handle for the users Dart handler that is responsible
+   * for handling messaging events in the background.
    */
   public static void setUserCallbackHandle(long callbackHandle) {
     FlutterFirebaseMessagingBackgroundExecutor.setUserCallbackHandle(callbackHandle);
   }
 
   /**
-   * Sets the {@link io.flutter.plugin.common.PluginRegistry.PluginRegistrantCallback} used to
-   * register the plugins used by an application with the newly spawned background isolate.
+   * Sets the
+   * {@link io.flutter.plugin.common.PluginRegistry.PluginRegistrantCallback} used
+   * to register the plugins used by an application with the newly spawned
+   * background isolate.
    *
-   * <p>This should be invoked in {@link MainApplication.onCreate} with {@link
-   * GeneratedPluginRegistrant} in applications using the V1 embedding API in order to use other
-   * plugins in the background isolate. For applications using the V2 embedding API, it is not
-   * necessary to set a {@link io.flutter.plugin.common.PluginRegistry.PluginRegistrantCallback} as
+   * <p>
+   * This should be invoked in {@link MainApplication.onCreate} with
+   * {@link GeneratedPluginRegistrant} in applications using the V1 embedding API
+   * in order to use other plugins in the background isolate. For applications
+   * using the V2 embedding API, it is not necessary to set a
+   * {@link io.flutter.plugin.common.PluginRegistry.PluginRegistrantCallback} as
    * plugins are registered automatically.
    */
-  @SuppressWarnings({"deprecation", "JavadocReference"})
-  public static void setPluginRegistrant(
-      io.flutter.plugin.common.PluginRegistry.PluginRegistrantCallback callback) {
-    // Indirectly set in FlutterFirebaseMessagingBackgroundExecutor for backwards compatibility.
+  @SuppressWarnings({ "deprecation", "JavadocReference" })
+  public static void setPluginRegistrant(io.flutter.plugin.common.PluginRegistry.PluginRegistrantCallback callback) {
+    // Indirectly set in FlutterFirebaseMessagingBackgroundExecutor for backwards
+    // compatibility.
     FlutterFirebaseMessagingBackgroundExecutor.setPluginRegistrant(callback);
   }
 
@@ -125,21 +135,24 @@ public class FlutterFirebaseMessagingBackgroundService extends JobIntentService 
   /**
    * Executes a Dart callback, as specified within the incoming {@code intent}.
    *
-   * <p>Invoked by our {@link JobIntentService} superclass after a call to {@link
-   * JobIntentService#enqueueWork(Context, Class, int, Intent,boolean);}.
+   * <p>
+   * Invoked by our {@link JobIntentService} superclass after a call to
+   * {@link JobIntentService#enqueueWork(Context, Class, int, Intent,boolean);}.
    *
-   * <p>If there are no pre-existing callback execution requests, other than the incoming {@code
+   * <p>
+   * If there are no pre-existing callback execution requests, other than the
+   * incoming {@code
    * intent}, then the desired Dart callback is invoked immediately.
    *
-   * <p>If there are any pre-existing callback requests that have yet to be executed, the incoming
-   * {@code intent} is added to the {@link #messagingQueue} to be invoked later, after all
-   * pre-existing callbacks have been executed.
+   * <p>
+   * If there are any pre-existing callback requests that have yet to be executed,
+   * the incoming {@code intent} is added to the {@link #messagingQueue} to be
+   * invoked later, after all pre-existing callbacks have been executed.
    */
   @Override
   protected void onHandleWork(@NonNull final Intent intent) {
     if (!flutterBackgroundExecutor.isDartBackgroundHandlerRegistered()) {
-      Log.w(
-          TAG,
+      Log.w(TAG,
           "A background message could not be handled in Dart as no onBackgroundMessage handler has been registered.");
       return;
     }
@@ -158,8 +171,7 @@ public class FlutterFirebaseMessagingBackgroundService extends JobIntentService 
     // specified by the incoming intent.
     final CountDownLatch latch = new CountDownLatch(1);
     new Handler(getMainLooper())
-        .post(
-            () -> flutterBackgroundExecutor.executeDartCallbackInBackgroundIsolate(intent, latch));
+        .post(() -> flutterBackgroundExecutor.executeDartCallbackInBackgroundIsolate(intent, latch));
 
     try {
       latch.await();
